@@ -29,8 +29,24 @@ The repository is divided into 5 main folders:
 All the outputs will be placed in `{REPO_ROOT} / "outputs"` by default. 
 
 ## Prerequisites
-1. Start by cloning our conda environment as specified by the `environment.yml` file as the root of the repository. 
-2. Make sure you update the paths for the RSNA, the EyePACS and the BSUI datasets in [default_paths.py](default_paths.py) to point to the root folder of the dataset as downloaded from [Kaggle RSNA Pneumonia Detection Challenge](https://www.kaggle.com/c/rsna-pneumonia-detection-challenge) for RNSA, from [Kaggle EyePACS Challenge](https://www.kaggle.com/c/diabetic-retinopathy-detection) for EyePACS and from [this page](https://scholar.cu.edu.eg/?q=afahmy/pages/dataset) for BUSI. For the EyePACS dataset you will also need to download the [test labels](https://storage.googleapis.com/kaggle-forum-message-attachments/90528/2877/retinopathy_solution.csv) and place it at the root of the dataset repository.
+1. Start by cloning our conda environment as specified by the `environment.yml` file as the root of the repository.
+    * Go to cmd and write:
+        ```
+        curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -o miniconda.exe
+        start /wait "" .\miniconda.exe /S
+        del miniconda.exe
+        ```
+    * after installing conda - make sure it is listed on your system PATH environment variable (if it doesn't add it):
+        ![img.png](img.png)
+        ![img_1.png](img_1.png)
+    * write the following lines in cmd:
+        ```
+        conda env create -f environment.yml -n Rejection_venv
+        conda activate Rejection_venv
+        ```
+    * make sure to choose the proper interpreter for your project.
+2. Make sure you update the paths for the RSNA, the EyePACS and the BSUI datasets in [default_paths.py](default_paths.py) to point to the root folder of the dataset as downloaded from [Kaggle RSNA Pneumonia Detection Challenge](https://www.kaggle.com/c/rsna-pneumonia-detection-challenge) for RNSA, from [Kaggle EyePACS Challenge](https://www.kaggle.com/c/diabetic-retinopathy-detection) for EyePACS and from [this page](https://scholar.cu.edu.eg/?q=afahmy/pages/dataset) for BUSI. For the EyePACS dataset you will also need to download the [test labels](https://storage.googleapis.com/kaggle-forum-message-attachments/90528/2877/retinopathy_solution.csv) and place it at the root of the dataset repository (PLACE THE DATASETS INSIDE DATASETS FOLDER AND DON'T TOUCH IT!):
+   *![img_2.png](img_2.png)
 3. Make sure the root directory is in your `PYTHONPATH` environment variable. 
 Ready to go!
 
@@ -47,7 +63,10 @@ Assuming your current work directory is the root of the repository:
     * `aggregated.csv` the aggregated tables with average and standard deviation over seeds. 
     * `ensemble_metrics.csv` with the metrics for the ensemble model.
 7. If you then want to reproduce the boxplots figures from the paper, you can run the `paper_plotting_notebooks/aggregated_curves.ipynb` notebook. Note this will save the plot inside the `outputs/figures` folder.
-
+8. if you want to create histograms and find thresholds - run this notebook: 
+[rejection_results.ipynb](rejection_results.ipynb)
+9. if you want to gather the metrics for all scores, run this notebook:
+[evaluate_baselines.ipynb](failure_detection/evaluate_baselines.ipynb)
 ## Configurations to reproduce all plots in the paper
 In order to reproduce all plots in Figure 2 of the paper, you need to repeat all steps 1-7 for the following provided [configs](configs/):
 * PathMNIST: [medmnist/pathmnist_resnet_dropout_all_layers.yml](configs/medmnist/pathmnist_resnet_dropout_all_layers.yml)
@@ -58,6 +77,7 @@ In order to reproduce all plots in Figure 2 of the paper, you need to repeat all
 * EyePACS Dataset: [EyePACS/retino_resnet.yml](EyePACS/retino_resnet.yml)
 
 Just replace the config name by one of the above config names and follow the steps from the above section (note that config name argument is expected to be the relative path to the configs folder). 
+
 
 ## References
 For this work, the following repositories were useful:
