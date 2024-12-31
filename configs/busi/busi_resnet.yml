@@ -1,4 +1,4 @@
-seed: [11, 22, 33, 44, 55]
+seed: [55]
 run_name: "dropout_all_layers_autolr_longer"
 dataset: "BUSI"
 model_name: "resnet18"

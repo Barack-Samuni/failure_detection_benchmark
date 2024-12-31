@@ -5,6 +5,8 @@ import pandas as pd
 import papermill as pm
 
 import torch
+from torch import Tensor
+
 from configs.load_model_and_config import (
     get_config_data_model_for_eval,
     get_failure_detection_filename,
@@ -125,6 +127,11 @@ def evaluate_single_model(
                 data_module.val_dataloader(),
                 config.n_classes,
             )
+
+            for key , score in swag_scores.items():
+                score = score.cpu()
+                swag_scores[key] = score
+
             scores_dict.update(swag_scores)
 
     # Get DUQ
@@ -142,6 +149,13 @@ def evaluate_single_model(
 
     torch.cuda.empty_cache()
     print(torch.cuda.memory_allocated(0) / 104900.0)
+
+    for key, score in scores_dict.items():
+        if isinstance(score, Tensor):
+            score = score.cpu()
+
+        scores_dict[key] = score
+
     scores_dataframe = pd.DataFrame(scores_dict)
     scores_dataframe.to_csv(get_failure_detection_filename(output_dir), index=False)
 

@@ -6,7 +6,7 @@ from sklearn.neighbors import KDTree, KNeighborsClassifier
 
 
 def get_trustscores(train_features, train_targets, test_features, test_predictions):
-    trust_scorer = TrustScore(num_workers=12)
+    trust_scorer = TrustScore(num_workers=4)
     trust_scorer.fit(
         train_features.numpy(),
         train_targets.int().numpy(),

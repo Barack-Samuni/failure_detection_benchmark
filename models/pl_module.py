@@ -41,6 +41,8 @@ class ClassificationModule(pl.LightningModule):
     def training_step(self, batch: Any, batch_idx: int) -> Any:  # type: ignore
         data, target = batch
         output = self.model(data)
+        target = target.long()
+        output = output.float()
         loss = self.criterion(output, target)
         self.log("Train/loss", loss, on_epoch=True, on_step=False)
         if self.train_metrics is not None:
@@ -60,6 +62,8 @@ class ClassificationModule(pl.LightningModule):
     def validation_step(self, batch, batch_idx: int) -> None:  # type: ignore
         data, target = batch
         output = self.model(data)
+        output = output.float()
+        target = target.long()
         loss = self.criterion(output, target)
         self.log("Val/loss", loss, on_epoch=True, on_step=False)
         if self.val_metrics is not None:

@@ -76,7 +76,8 @@ def train_epoch(
         if cuda:
             input = input.cuda(non_blocking=True)
             target = target.cuda(non_blocking=True)
-
+        input = input.float()
+        target = target.long()
         loss, output = criterion(model, input, target)
         if torch.isnan(loss):
             raise
@@ -128,6 +129,8 @@ def eval(loader, model, criterion, cuda=True, regression=False, verbose=False):
                 input = input.cuda(non_blocking=True)
                 target = target.cuda(non_blocking=True)
 
+            input = input.float()
+            target = target.long()
             loss, output = criterion(model, input, target)
 
             loss_sum += loss.item() * input.size(0)

@@ -20,7 +20,9 @@ from configs.default_config import load_yaml_training_config
 from configs.load_model_and_config import get_modules, get_output_dir_from_config
 from pytorch_lightning import seed_everything
 from ignite.handlers import Checkpoint, global_step_from_engine
+from torch.cuda.amp import GradScaler, autocast
 
+scaler = GradScaler()
 
 def main(config):
     config = load_yaml_training_config(
@@ -102,8 +104,7 @@ def main(config):
             x.requires_grad_(True)
 
             y_pred = model(x)
-
-            y = F.one_hot(y, config.n_classes).float()
+            y = F.one_hot(y.long(), config.n_classes).float()
 
             loss = F.binary_cross_entropy(y_pred, y, reduction="mean")
 
@@ -111,8 +112,11 @@ def main(config):
                 gp = calc_gradient_penalty(x, y_pred)
                 loss += config.training.duq.l_gradient_penalty * gp
 
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
+            torch.cuda.empty_cache()
 
             x.requires_grad_(False)
 
@@ -130,8 +134,10 @@ def main(config):
 
             x.requires_grad_(True)
 
-            y_pred = model(x)
+            with autocast():
+                y_pred = model(x)
 
+            torch.cuda.empty_cache()
             return {"x": x, "y": y, "y_pred": y_pred}
 
         trainer = Engine(step)

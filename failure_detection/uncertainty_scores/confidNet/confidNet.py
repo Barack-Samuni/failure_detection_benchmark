@@ -45,8 +45,8 @@ class ConfidNetModule(pl.LightningModule):
             self.main_model.apply(train_dropout)
             feats = self.main_model.get_features(data)
             probas = torch.softmax(self.main_model.classify_features(feats), dim=1)
-            targets = probas[torch.arange(true_class.shape[0]), true_class.flatten()]
-        output = torch.sigmoid(self.confid_net(feats).squeeze())
+            targets = probas[torch.arange(true_class.shape[0]).long(), true_class.flatten().long()].float()
+        output = torch.sigmoid(self.confid_net(feats).squeeze()).float()
         loss = self.criterion(output, targets)
         self.log("Train/loss", loss, on_epoch=True, on_step=False)
         return loss
@@ -55,10 +55,10 @@ class ConfidNetModule(pl.LightningModule):
         data, true_class = batch
         with torch.no_grad():
             self.main_model.eval()
-            feats = self.main_model.get_features(data)
+            feats = self.main_model.get_features(data).float()
             probas = torch.softmax(self.main_model.classify_features(feats), dim=1)
-            targets = probas[torch.arange(true_class.shape[0]), true_class.flatten()]
-        output = torch.sigmoid(self.confid_net(feats).squeeze())
+            targets = probas[torch.arange(true_class.shape[0]).long(), true_class.flatten().long()].float()
+        output = torch.sigmoid(self.confid_net(feats).squeeze()).float()
         loss = self.criterion(output, targets)
         predictions = torch.argmax(probas, dim=1)
         self.val_aupr(-output, predictions != true_class)
@@ -72,8 +72,8 @@ class ConfidNetModule(pl.LightningModule):
         with torch.no_grad():
             self.main_model.eval()
             self.main_model.dropout_at_test_time = False  # type: ignore
-            feats = self.main_model.get_features(data)
-            output = self.confid_net(feats).squeeze()
+            feats = self.main_model.get_features(data).float()
+            output = self.confid_net(feats).squeeze().float()
         return torch.sigmoid(output)
 
     def configure_optimizers(self):

@@ -18,6 +18,7 @@ from yacs.config import CfgNode
 from configs.default_config import load_yaml_training_config
 
 
+
 _model_name_to_module_cls = {
     "resnet18": resnet.ResNet18Module,
     "resnet50": resnet.ResNet50Module,
