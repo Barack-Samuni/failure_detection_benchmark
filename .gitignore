@@ -115,7 +115,7 @@ dmypy.json
 .DS_Store
 .vscode/launch.json
 MNIST/
-data/
+datasets/
 logs/
 outputs/
 
@@ -125,3 +125,7 @@ cifar-10-python.tar.gz
 
 *.pickle
 *lightning_logs/
+
+#Pycharm and VS code
+.idea/
+.vscode/
