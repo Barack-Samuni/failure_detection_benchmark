@@ -1,0 +1,47 @@
+name: Project Automation
+
+on:
+  issues:
+    types:
+      - assigned
+  pull_request:
+    types:
+      - opened
+      - closed
+
+jobs:
+  move-to-in-progress:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move assigned issue to "In Progress"
+        uses: actions-ecosystem/action-add-to-project@v1
+        with:
+          project_url: https://github.com/users/Barack-Samuni/projects/2  # Replace with your project URL
+          column_name: In Progress  # Name of the column for "In Progress"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  move-to-in-review:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move linked issue to "In Review"
+        uses: actions-ecosystem/action-add-to-project@v1
+        with:
+          project_url: https://github.com/users/Barack-Samuni/projects/2  # Replace with your project URL
+          column_name: In Review  # Name of the column for "In Review"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  move-to-done:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move linked issue to "Done"
+        uses: actions-ecosystem/action-add-to-project@v1
+        with:
+          project_url: https://github.com/users/Barack-Samuni/projects/2  # Replace with your project URL
+          column_name: Done  # Name of the column for "Done"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
