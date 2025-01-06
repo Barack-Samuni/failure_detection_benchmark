@@ -15,33 +15,97 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Move assigned issue to "In Progress"
-        uses: actions-ecosystem/action-add-to-project@v1
+        uses: actions/github-script@v6
         with:
-          project_url: https://github.com/users/Barack-Samuni/projects/2  # Replace with your project URL
-          column_name: In Progress  # Name of the column for "In Progress"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const projectUrl = "https://github.com/users/Barack-Samuni/projects/2"; // Replace with your project URL
+            const columnName = "In Progress"; // Name of the column for "In Progress"
+            
+            const projectId = projectUrl.split('/projects/')[1]; // Extract project ID
+            const columns = await github.rest.projects.listColumns({
+              project_id: projectId,
+              headers: { accept: "application/vnd.github.inertia-preview+json" }
+            });
+
+            const column = columns.data.find(col => col.name === columnName);
+            if (!column) throw new Error(`Column ${columnName} not found`);
+
+            const card = await github.rest.projects.createCard({
+              column_id: column.id,
+              content_id: context.payload.issue.id,
+              content_type: "Issue"
+            });
 
   move-to-in-review:
     if: github.event_name == 'pull_request' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
       - name: Move linked issue to "In Review"
-        uses: actions-ecosystem/action-add-to-project@v1
+        uses: actions/github-script@v6
         with:
-          project_url: https://github.com/users/Barack-Samuni/projects/2  # Replace with your project URL
-          column_name: In Review  # Name of the column for "In Review"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const projectUrl = "https://github.com/users/Barack-Samuni/projects/2"; // Replace with your project URL
+            const columnName = "In Review"; // Name of the column for "In Review"
+            
+            const projectId = projectUrl.split('/projects/')[1];
+            const columns = await github.rest.projects.listColumns({
+              project_id: projectId,
+              headers: { accept: "application/vnd.github.inertia-preview+json" }
+            });
+
+            const column = columns.data.find(col => col.name === columnName);
+            if (!column) throw new Error(`Column ${columnName} not found`);
+
+            const linkedIssues = context.payload.pull_request.body.match(/#(\d+)/g);
+            if (linkedIssues) {
+              for (const issueNumber of linkedIssues) {
+                const issue = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+
+                const card = await github.rest.projects.createCard({
+                  column_id: column.id,
+                  content_id: issue.data.id,
+                  content_type: "Issue"
+                });
+              }
+            }
 
   move-to-done:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
     runs-on: ubuntu-latest
     steps:
       - name: Move linked issue to "Done"
-        uses: actions-ecosystem/action-add-to-project@v1
+        uses: actions/github-script@v6
         with:
-          project_url: https://github.com/users/Barack-Samuni/projects/2  # Replace with your project URL
-          column_name: Done  # Name of the column for "Done"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const projectUrl = "https://github.com/users/Barack-Samuni/projects/2"; // Replace with your project URL
+            const columnName = "Done"; // Name of the column for "Done"
+            
+            const projectId = projectUrl.split('/projects/')[1];
+            const columns = await github.rest.projects.listColumns({
+              project_id: projectId,
+              headers: { accept: "application/vnd.github.inertia-preview+json" }
+            });
+
+            const column = columns.data.find(col => col.name === columnName);
+            if (!column) throw new Error(`Column ${columnName} not found`);
+
+            const linkedIssues = context.payload.pull_request.body.match(/#(\d+)/g);
+            if (linkedIssues) {
+              for (const issueNumber of linkedIssues) {
+                const issue = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+
+                const card = await github.rest.projects.createCard({
+                  column_id: column.id,
+                  content_id: issue.data.id,
+                  content_type: "Issue"
+                });
+              }
+            }
