@@ -18,10 +18,16 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const projectUrl = "https://github.com/users/Barack-Samuni/projects/2"; // Replace with your project URL
             const columnName = "In Progress"; // Name of the column for "In Progress"
-            
-            const projectId = projectUrl.split('/projects/')[1]; // Extract project ID
+
+            // Dynamically determine repository context
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Project ID
+            const projectId = 2; // Project ID extracted from your URL
+
+            // Get project columns
             const columns = await github.rest.projects.listColumns({
               project_id: projectId,
               headers: { accept: "application/vnd.github.inertia-preview+json" }
@@ -32,7 +38,7 @@ jobs:
 
             const card = await github.rest.projects.createCard({
               column_id: column.id,
-              content_id: context.payload.issue.id,
+              content_id: context.payload.issue.node_id,
               content_type: "Issue"
             });
 
@@ -44,10 +50,16 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const projectUrl = "https://github.com/users/Barack-Samuni/projects/2"; // Replace with your project URL
             const columnName = "In Review"; // Name of the column for "In Review"
-            
-            const projectId = projectUrl.split('/projects/')[1];
+
+            // Dynamically determine repository context
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Project ID
+            const projectId = 2; // Project ID extracted from your URL
+
+            // Get project columns
             const columns = await github.rest.projects.listColumns({
               project_id: projectId,
               headers: { accept: "application/vnd.github.inertia-preview+json" }
@@ -60,14 +72,14 @@ jobs:
             if (linkedIssues) {
               for (const issueNumber of linkedIssues) {
                 const issue = await github.rest.issues.get({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber
+                  owner: repoOwner,
+                  repo: repoName,
+                  issue_number: issueNumber.replace("#", "")
                 });
 
-                const card = await github.rest.projects.createCard({
+                await github.rest.projects.createCard({
                   column_id: column.id,
-                  content_id: issue.data.id,
+                  content_id: issue.data.node_id,
                   content_type: "Issue"
                 });
               }
@@ -81,10 +93,16 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const projectUrl = "https://github.com/users/Barack-Samuni/projects/2"; // Replace with your project URL
             const columnName = "Done"; // Name of the column for "Done"
-            
-            const projectId = projectUrl.split('/projects/')[1];
+
+            // Dynamically determine repository context
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            // Project ID
+            const projectId = 2; // Project ID extracted from your URL
+
+            // Get project columns
             const columns = await github.rest.projects.listColumns({
               project_id: projectId,
               headers: { accept: "application/vnd.github.inertia-preview+json" }
@@ -97,14 +115,14 @@ jobs:
             if (linkedIssues) {
               for (const issueNumber of linkedIssues) {
                 const issue = await github.rest.issues.get({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber
+                  owner: repoOwner,
+                  repo: repoName,
+                  issue_number: issueNumber.replace("#", "")
                 });
 
-                const card = await github.rest.projects.createCard({
+                await github.rest.projects.createCard({
                   column_id: column.id,
-                  content_id: issue.data.id,
+                  content_id: issue.data.node_id,
                   content_type: "Issue"
                 });
               }
