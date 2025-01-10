@@ -215,18 +215,15 @@ def process_busi_dataset(
 Example usage:
 
 import data_preparation_busi as dp
-
-
-# Example usage:
 dataset_dir = "Dataset_BUSI_with_GT"  # Replace with the actual path
-augmentations = [dp.random_horizontal_flip, dp.random_rotation, dp.random_color_jitter]
+augmentations_to_do = [dp.random_horizontal_flip, dp.random_rotation, dp.random_color_jitter]
 
 
 dp.process_busi_dataset(
-    dataset_dir=dataset_dir,
-    mask_suffix="_mask.png",
-    target_count=500,
-    augmentations=[dp.random_horizontal_flip, dp.random_rotation, dp.random_color_jitter],
-    visualize=True
+    dataset_dir = dataset_dir,
+    mask_suffix = "_mask.png",
+    target_count = 500,
+    augmentations = augmentations_to_do,
+    visualize = True
 )
 """
