@@ -47,6 +47,7 @@ def load_yaml_training_config(config_path: Path) -> CfgNode:
     """
     Loads augmentations configs defined as yaml files.
     """
+    print(f"Loading config from {config_path}")     # Debugging only
     yaml_config = config.clone()
     yaml_config.merge_from_file(config_path)
     return yaml_config

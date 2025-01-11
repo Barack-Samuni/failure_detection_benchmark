@@ -235,6 +235,12 @@ def get_all_scores(
 
 if __name__ == "__main__":
     import argparse
+    import os
+    from pathlib import Path
+
+    # Change working directory of the script
+    os.chdir(Path(__file__).parent.parent)
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -245,4 +251,4 @@ if __name__ == "__main__":
         help="Path to config file characterising trained model to evaluate",
     )
     args = parser.parse_args()
-    get_all_scores(config_name=args.config, execute_notebook=True)
+    get_all_scores(config_name=args.config, execute_notebook=False)

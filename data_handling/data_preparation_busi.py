@@ -227,3 +227,13 @@ dp.process_busi_dataset(
     visualize = True
 )
 """
+
+if __name__ == "__main__":
+    from default_paths import DATA_BUSI
+    process_busi_dataset(
+        dataset_dir = DATA_BUSI,
+        mask_suffix = "_mask.png",
+        target_count = 500,
+        augmentations = [random_horizontal_flip, random_rotation, random_color_jitter],
+        visualize = True
+    )
