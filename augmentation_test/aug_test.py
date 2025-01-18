@@ -51,19 +51,19 @@ train_files_temp = train_normal + train_benign + train_malignant
 y_train_temp = np.concatenate((y_train_normal, y_train_benign, y_train_malignant))
 ###################################################################
 
+print(type(train_files_temp))
+print(type(y_train_temp))
 
-# Example of augmentation transforms
-augmentation_transforms = transforms.Compose([
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(30),
-    transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5)
-])
 
-# Call the master function
-train_files, y_train = dp2.create_and_augment_train_data(
-    train_files=train_files_temp,
-    y_train=y_train_temp,
-    root_dir=root_dir,
-    augmentation_transforms=augmentation_transforms,
-    plot_augmented=True  # Set to False if you don't want to plot augmentations
-)
+
+train_files, y_train = dp2.augment_and_balance_dataset(root_dir, train_files_temp, y_train_temp, visualize=True)
+
+print("\n\n")
+
+print(type(train_files))
+print(type(y_train))
+
+# print("\n\n")
+# print(train_files)
+# print("\n\n")
+# print(y_train)

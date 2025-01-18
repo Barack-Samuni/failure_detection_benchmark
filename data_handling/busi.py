@@ -9,9 +9,7 @@ import numpy as np
 
 from default_paths import DATA_BUSI
 
-
 import data_preparation_busi_2 as dp2
-from torchvision import transforms
 
 
 class BUSIDataset(VisionDataset):
@@ -100,26 +98,13 @@ class BUSIDataModule(pl.LightningDataModule):
         # train_files = train_normal + train_benign + train_malignant
         # y_train = np.concatenate((y_train_normal, y_train_benign, y_train_malignant))
 
-        ##### My changes from here to perform augmentations #########
+        ######### My changes from here to perform augmentations ###########
 
         train_files_temp = train_normal + train_benign + train_malignant
         y_train_temp = np.concatenate((y_train_normal, y_train_benign, y_train_malignant))
 
-        # Create the augmentations wanted for the data
-        augmentation_transforms = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(30),
-            transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5)
-        ])
-
-        # Call the master function to augment the training data only.
-        train_files, y_train = dp2.create_and_augment_train_data(
-            train_files=train_files_temp,
-            y_train=y_train_temp,
-            root_dir=DATA_BUSI,
-            augmentation_transforms=augmentation_transforms,
-            plot_augmented=True  # Set to False if you don't want to plot augmentations
-        )
+        #Augmentations and data balancing for busi dataset
+        train_files, y_train = dp2.augment_and_balance_dataset(self.root_dir, train_files_temp, y_train_temp, visualize=True)
 
         ############################################################
 
