@@ -104,7 +104,7 @@ class BUSIDataModule(pl.LightningDataModule):
         y_train_temp = np.concatenate((y_train_normal, y_train_benign, y_train_malignant))
 
         #Augmentations and data balancing for busi dataset
-        train_files, y_train = dp2.augment_and_balance_dataset(self.root_dir, train_files_temp, y_train_temp, visualize=True)
+        train_files, y_train = dp2.augment_and_balance_dataset(self.root_dir, train_files_temp, y_train_temp, visualize=False)
 
         ############################################################
 

@@ -73,18 +73,40 @@ def perform_data_augmentation(train_data_dir, class_dirs, max_count, visualize=F
         current_count = len(files)
         augment_count = max_count - current_count
         print(f"Augmenting {augment_count} images for class '{class_dir}'...")
+        examples_to_plot = None
+        axes = None
+        num_of_double_augmentations = 0
 
         if visualize:
             examples_to_plot = random.sample(files, min(3, len(files)))
             fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-        for _ in range(augment_count):
-            file_to_augment = random.choice(files)
-            img = Image.open(file_to_augment)
-            augmented_img = augmentation_transforms(img)
+        random.shuffle(files)
+        augmented_images = []
+        num_of_double_augmentaions = 0
 
-            augmented_file_name = f"aug_{random.randint(0, 1e6)}_{file_to_augment.name}"
-            augmented_img.save(class_path / augmented_file_name)
+        for i in range(augment_count):
+            if i <= len(files) - 1:
+                file_to_augment = files[i]
+                img = Image.open(file_to_augment)
+                augmented_img = augmentation_transforms(img)
+
+                augmented_file_name = f"augmented_{file_to_augment.name}"
+                augmented_img.save(class_path / augmented_file_name)
+                augmented_images.append(class_path / augmented_file_name)
+
+            if i == len(files):     # performed augmentations for all original files
+                random.shuffle(augmented_images)
+
+
+            if i >= len(files):
+                file_to_augment = augmented_images[i - len(files)]
+                img = Image.open(file_to_augment)
+                augmented_img = augmentation_transforms(img)
+
+                augmented_file_name = f"augmented_{file_to_augment.name}"
+                augmented_img.save(class_path / augmented_file_name)
+                augmented_images.append(class_path / augmented_file_name)
 
         if visualize:
             for i, example_file in enumerate(examples_to_plot):
