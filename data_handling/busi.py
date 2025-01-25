@@ -9,6 +9,8 @@ import numpy as np
 
 from default_paths import DATA_BUSI
 
+import data_handling.data_preparation_busi_2 as dp2
+
 
 class BUSIDataset(VisionDataset):
     def __init__(
@@ -92,8 +94,19 @@ class BUSIDataModule(pl.LightningDataModule):
             np.repeat(2, len(test_malignant)),
         )
 
-        train_files = train_normal + train_benign + train_malignant
-        y_train = np.concatenate((y_train_normal, y_train_benign, y_train_malignant))
+        ### ORIGINAL CODE ###
+        # train_files = train_normal + train_benign + train_malignant
+        # y_train = np.concatenate((y_train_normal, y_train_benign, y_train_malignant))
+
+        ######### My changes from here to perform augmentations ###########
+
+        train_files_temp = train_normal + train_benign + train_malignant
+        y_train_temp = np.concatenate((y_train_normal, y_train_benign, y_train_malignant))
+
+        #Augmentations and data balancing for busi dataset
+        train_files, y_train = dp2.augment_and_balance_dataset(self.root_dir, train_files_temp, y_train_temp, visualize=False)
+
+        ############################################################
 
         val_files = val_normal + val_benign + val_malignant
         y_val = np.concatenate((y_val_normal, y_val_benign, y_val_malignant))
