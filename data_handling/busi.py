@@ -9,7 +9,7 @@ import numpy as np
 
 from default_paths import DATA_BUSI
 
-import data_preparation_busi_2 as dp2
+import data_handling.data_preparation_busi_2 as dp2
 
 
 class BUSIDataset(VisionDataset):
