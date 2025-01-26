@@ -20,7 +20,6 @@ if __name__ == "__main__":
         help="Path to config file characterising trained CNN model/s",
     )
     args = parser.parse_args()
-
     config = load_yaml_training_config(
         Path(__file__).parent.parent / "configs" / args.config
     )

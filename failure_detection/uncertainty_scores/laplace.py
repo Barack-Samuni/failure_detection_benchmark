@@ -77,7 +77,7 @@ def get_laplace_scores(model, train_loader, test_loader, val_loader, n_classes):
             torch.cat(val_probas).cuda(),
             torch.cat(val_targets).cuda(),
         )
-        threshold = get_threshold(val_probas, val_targets, target_fpr=0.2)
+        threshold = get_threshold(val_probas.cpu(), val_targets.cpu(), target_fpr=0.2)
         test_out["Laplace_predictions"] = test_probas[:, 1] > threshold
         test_out["Laplace_threshold"] = threshold
         test_out["Laplace_score"] = SoftmaxBasedScorer(threshold).get_scores(

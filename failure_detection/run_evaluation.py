@@ -129,7 +129,9 @@ def evaluate_single_model(
             )
 
             for key , score in swag_scores.items():
-                score = score.cpu()
+                if isinstance(score, Tensor):
+                    score = score.cpu()
+
                 swag_scores[key] = score
 
             scores_dict.update(swag_scores)

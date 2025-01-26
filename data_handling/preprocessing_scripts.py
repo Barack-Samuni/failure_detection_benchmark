@@ -18,11 +18,11 @@ def run_rsna_preprocessing_script():
     root = DATA_DIR_RSNA
 
     df = pd.read_csv(
-        root / "stage_2_train_images" / "stage_2_train_labels.csv"
+        root / "stage_2_train_labels.csv"
     ).drop_duplicates()
     DATA_DIR_RSNA_PROCESSED_IMAGES.mkdir(parents=True, exist_ok=True)
     subject_ids = df.patientId.values
-    filenames = [root / f"{subject_id}.dcm" for subject_id in subject_ids]
+    filenames = [root /"stage_2_train_images"/ f"{subject_id}.dcm" for subject_id in subject_ids]
     for file in filenames:
         scan_image = pydicom.filereader.dcmread(file).pixel_array.astype(np.float32)
         scan_image = (
