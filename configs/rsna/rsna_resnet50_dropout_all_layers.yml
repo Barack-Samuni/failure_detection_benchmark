@@ -1,4 +1,4 @@
-seed: [55]
+seed: [10]
 run_name: dropout_all_layers_autolr_paper
 dataset: "RSNAPneumonia"
 model_name: "resnet50"
