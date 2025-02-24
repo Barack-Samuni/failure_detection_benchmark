@@ -1,5 +1,7 @@
 import pandas as pd
 import confidence_score  as cs
+import thresholding
+
 scores_df_path = r"scores_df.csv"
 
 scores_df = pd.read_csv(scores_df_path)
@@ -59,4 +61,12 @@ print(f"Laplace Score Normalized: {laplace_score_list_normalized[:5]}")
 #print(f"TrustScore Normalized: {trustscore_list_normalized[:5]}")
 print(f"ConfidNet Scores Normalized: {confidnet_scores_list_normalized[:5]}")
 print(f"SWAG Score Normalized: {swag_score_list_normalized[:5]}")
+
+
+# scoring_methods = ["Baseline", "doctor_alpha", "mcmc_soft_scores", "Laplace_score","ConfidNet_scores", "SWAG_score"]
+
+thresholds = thresholding.find_thresholds(scores_df, visualize=True, separate_classes=False,confidnet=True, swag=True, duq=False,ensemble=False, mcmc_entropy_scores = False, trust_score = False)
+
+print("\n")
+print(thresholds)
 

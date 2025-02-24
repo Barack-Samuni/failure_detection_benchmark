@@ -49,3 +49,44 @@ def normalize_scores_absolute_range(method_name, score_list):
     return normalized_list
 
 
+
+"""
+Simple Rejection logic: 
+If confidence = 0: reject all scores
+If confidence = 100: reject nothing
+If confidence is between 0 and 100/n, reject if at least 1 method fails (doesnt pass the threshold)
+If confidence is between 100/n and 2 * (100/n), reject if at least 2 methods fail
+Continue this logic up to n, where confidence is 100 - (100/n), rejecting if n scores fail
+
+"""
+def simple_rejection_by_confidence(confidence_level, scores, thresholds):
+    """
+       Rejects a sample based on the number of failed thresholds and the confidence level.
+
+       Args:
+           scores (dict): A dictionary of {method_name: score}.
+           thresho lds (dict): A dictionary of {method_name: threshold}.
+           confidence (float): Confidence level (0-100).
+
+       Returns:
+           bool: True if the sample should be rejected, False otherwise.
+       """
+
+    confidence_max = scores_constants.get_confidence_max()
+    # Get the resolution of number of score methods that are used by the max confidence (max 100)
+    rejection_resolution = confidence_max / len(thresholds)
+
+    n = len(thresholds)  # Number of scoring methods
+    if n == 0:
+        return False  # No scores, nothing to reject
+
+    # Determine how many failures are allowed based on confidence
+    max_failures = int(confidence_level / (100 / n))  # Floors automatically
+
+    # Count how many scores fail the threshold
+    failures = sum(score < thresholds[method] for method, score in scores.items())
+
+    # Reject if failures exceed the allowed max_failures ( returns a bool flag)
+    return failures > max_failures
+
+
