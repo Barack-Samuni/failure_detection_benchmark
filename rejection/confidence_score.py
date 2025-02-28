@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def find_optimal_weights(dataframe, thresholds):
     """
     This function finds the optimal weights for the weighted sum used to calculate the confidence score
@@ -64,8 +65,43 @@ def find_optimal_weights(dataframe, thresholds):
         weights = np.append(weights, rejection_of_incorrect_percentage)
 
     max_weight = weights.max()
-    weights = 1 - (np.abs(weights - max_weight) / max_weight)
+    min_weight = weights.min()
+
+    # min - max normalization
+    if min_weight == max_weight:
+        weights = np.ones(len(weights)) # all weights will be 1
+    else:
+        weights = (weights - min_weight) / (max_weight - min_weight)
+
     optimal_weights["Weight"] = weights
 
     return optimal_weights
+
+def calculate_confidence_score(dataframe, weights):
+    """
+    This function calculates the confidence score for each sample based on the weighted sum of the scores
+    for each scoring method
+    """
+    confidence_scores = np.array([])
+    output_df = dataframe.copy()
+    weights = weights.set_index("Scoring_Method")
+    weights["Scoring_Method"] = weights.index
+    for _, row in output_df.iterrows():
+        confidence_score = row[weights["Scoring_Method"]].dot(weights["Weight"])
+        confidence_scores = np.append(confidence_scores, confidence_score)
+
+    # min-max normalization
+    output_df["Confidence_score"] = confidence_scores
+    max_confidence_score = output_df["Confidence_score"].max()
+    min_confidence_score = output_df["Confidence_score"].min()
+
+    if min_confidence_score == max_confidence_score:
+        output_df["Confidence_score"] = np.ones(len(output_df["Confidence_score"])) * 100
+
+    else:
+        output_df["Confidence_score"] = ((output_df["Confidence_score"] - min_confidence_score) /
+                                         (max_confidence_score - min_confidence_score)) * 100
+
+    return output_df
+
 
