@@ -92,6 +92,16 @@ def get_output_dir_from_config_train(config: CfgNode) -> Path:
         / f"seed_{config.seed}"
     )
 
+def get_output_dir_from_config_validation(config: CfgNode) -> Path:
+    return (
+        Path(os.getenv("OUTPUT_DIR", "outputs_validation"))
+        / config.dataset
+        / config.model_name
+        / f"{config.run_name}"
+        / f"seed_{config.seed}"
+    )
+
+
 
 def load_model_from_checkpoint(config, model_module):
     model = model_module.load_from_checkpoint(
@@ -136,13 +146,26 @@ def get_config_data_model_for_eval_train(config_name: str):
         output_dirs.append(config.output_dir)
     return config, data_module, models, output_dirs
 
+def get_config_data_model_for_eval_validation(config_name: str):
+    config = load_yaml_training_config(Path(__file__).parent / config_name)
+    data_module, model_module = get_modules(config, shuffle_training=False)
+    data_module.train_transforms = data_module.val_transforms
+    data_module.test_transforms = data_module.val_transforms
+    data_module.prepare_data()
+    data_module.setup()
+    models = []
+    output_dirs = []
+    all_seeds = config.seed if isinstance(config.seed, List) else [config.seed]
+    seed_everything(all_seeds[0], workers=True)
+    for seed in all_seeds:
+        config.seed = seed
+        config.output_dir = str(get_output_dir_from_config_validation(config))
+        models.append(load_model_from_checkpoint(config, model_module))
+        output_dirs.append(config.output_dir)
+    return config, data_module, models, output_dirs
+
 
 def get_failure_detection_filename(output_dir):
-    folder_name = Path(output_dir) / "failure_detection"
-    folder_name.mkdir(parents=True, exist_ok=True)
-    return folder_name / "scores_df.csv"
-
-def get_failure_detection_filename_train(output_dir):
     folder_name = Path(output_dir) / "failure_detection"
     folder_name.mkdir(parents=True, exist_ok=True)
     return folder_name / "scores_df.csv"

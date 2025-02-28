@@ -47,9 +47,31 @@ def find_thresholds(dataframe,visualize=True, separate_classes=False,confidnet=F
 
                 else:
                     ax = None
-                # Separate the data into correct and incorrect classifications for the current class and scoring method
-                correct = dataframe[(dataframe['Targets'] == cls) & (dataframe['IsCorrect'] == True)][method]
-                incorrect = dataframe[(dataframe['Targets'] == cls) & (dataframe['IsCorrect'] == False)][method]
+
+                if swag and method == "SWAG_score":
+                    correct = dataframe[(dataframe['SWAG_targets'] == cls) &
+                                        (dataframe['SWAG_predictions'] == dataframe['SWAG_targets'])][method]
+                    incorrect = dataframe[(dataframe['SWAG_targets'] == cls) &
+                                        (dataframe['SWAG_predictions'] != dataframe['SWAG_targets'])][method]
+
+                elif method == "mcmc_soft_scores" or method == "mcmc_entropy_scores":
+                    correct = dataframe[(dataframe['Targets'] == cls) &
+                                        (dataframe['mcmc_predictions'] == dataframe['Targets'])][method]
+
+                    incorrect = dataframe[(dataframe['Targets'] == cls) &
+                                        (dataframe['mcmc_predictions'] != dataframe['Targets'])][method]
+
+                elif method == "Laplace_score":
+                    correct = dataframe[(dataframe['Targets'] == cls) &
+                                        (dataframe['Laplace_predictions'] == dataframe['Laplace_targets'])][method]
+                    incorrect = dataframe[(dataframe['Targets'] == cls) &
+                                        (dataframe['Laplace_predictions'] != dataframe['Laplace_targets'])][method]
+
+                else:
+                    # Separate the data into correct and incorrect classifications for the current class and scoring method
+                    correct = dataframe[(dataframe['Targets'] == cls) & (dataframe['IsCorrect'] == True)][method]
+                    incorrect = dataframe[(dataframe['Targets'] == cls) & (dataframe['IsCorrect'] == False)][method]
+
                 # Find the optimal threshold using KDE without clearing histograms
                 x_vals = np.linspace(min(dataframe[method]), max(dataframe[method]), 1000)
 
@@ -108,9 +130,23 @@ def find_thresholds(dataframe,visualize=True, separate_classes=False,confidnet=F
             else:
                 ax = None
 
-            # Separate the data into correct and incorrect classifications for the current scoring method
-            correct = dataframe[dataframe['IsCorrect'] == True][method]
-            incorrect = dataframe[dataframe['IsCorrect'] == False][method]
+            if method == "mcmc_soft_scores" or method == "mcmc_entropy_scores":
+                correct = dataframe[dataframe['mcmc_predictions'] == dataframe['Targets']][method]
+                incorrect = dataframe[dataframe['mcmc_predictions'] != dataframe['Targets']][method]
+
+            elif method == "Laplace_score":
+                correct = dataframe[dataframe['Laplace_predictions'] == dataframe['Laplace_targets']][method]
+                incorrect = dataframe[dataframe['Laplace_predictions'] != dataframe['Laplace_targets']][method]
+
+            elif swag and method == "SWAG_score":
+                correct = dataframe[dataframe['SWAG_targets'] == dataframe['SWAG_predictions']][method]
+                incorrect = dataframe[dataframe['SWAG_targets'] != dataframe['SWAG_predictions']][method]
+
+
+            else:
+                # Separate the data into correct and incorrect classifications for the current scoring method
+                correct = dataframe[dataframe['IsCorrect'] == True][method]
+                incorrect = dataframe[dataframe['IsCorrect'] == False][method]
 
 
             # Find the optimal threshold using KDE without clearing histograms
