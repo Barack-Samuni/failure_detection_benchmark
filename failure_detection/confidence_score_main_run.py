@@ -1,10 +1,14 @@
 import pandas as pd
 import confidence_score  as cs
 import thresholding
+import scores_constants
+
+
 
 scores_df_path = r"scores_df.csv"
 
 scores_df = pd.read_csv(scores_df_path)
+pd.set_option("display.max_rows", None)  # Show all rows
 
 # Extracting columns into lists
 # Target and prediction columns
@@ -42,31 +46,57 @@ print(f"Laplace Correct Predictions: {Laplace_correct} ({Laplace_accuracy:.2f}%)
 print(f"SWAG Correct Predictions: {SWAG_correct} ({SWAG_accuracy:.2f}%)")
 print("\n\n")
 
-# Normalize each of the score lists
-baseline_list_normalized = cs.normalize_scores_absolute_range("Baseline",baseline_list)
-doctor_alpha_list_normalized = cs.normalize_scores_absolute_range("doctor_alpha",doctor_alpha_list)
-mcmc_soft_scores_list_normalized = cs.normalize_scores_absolute_range("mcmc_soft",mcmc_soft_scores_list)
-# mcmc_entropy_scores_list_normalized = cs.normalize_scores_absolute_range(mcmc_entropy_scores_list)
-laplace_score_list_normalized = cs.normalize_scores_absolute_range("Laplace",laplace_score_list)
-# trustscore_list_normalized = cs.normalize_scores_absolute_range(trustscore_list)
-confidnet_scores_list_normalized = cs.normalize_scores_absolute_range("ConfidNet",confidnet_scores_list)
-swag_score_list_normalized = cs.normalize_scores_absolute_range("swag",swag_score_list)
 
-# Print 5 samples of the normalized lists (optional)
-print(f"Baseline Normalized: {baseline_list_normalized[:5]}")  # Print first 5 as an example
-print(f"Doctor Alpha Normalized: {doctor_alpha_list_normalized[:5]}")
-print(f"MCMC Soft Scores Normalized: {mcmc_soft_scores_list_normalized[:5]}")
-#print(f"MCMC Entropy Scores Normalized: {mcmc_entropy_scores_list_normalized[:5]}")
-print(f"Laplace Score Normalized: {laplace_score_list_normalized[:5]}")
-#print(f"TrustScore Normalized: {trustscore_list_normalized[:5]}")
-print(f"ConfidNet Scores Normalized: {confidnet_scores_list_normalized[:5]}")
-print(f"SWAG Score Normalized: {swag_score_list_normalized[:5]}")
-
-
-# scoring_methods = ["Baseline", "doctor_alpha", "mcmc_soft_scores", "Laplace_score","ConfidNet_scores", "SWAG_score"]
+# # Print 5 samples of the normalized lists (optional)
+# Example usage
+normalized_scores_df = cs.normalize_scores_df(scores_df)
+print("Normalized scores to ramge 0 - 100 dict")
+print(normalized_scores_df[:5])
 
 thresholds = thresholding.find_thresholds(scores_df, visualize=True, separate_classes=False,confidnet=True, swag=True, duq=False,ensemble=False, mcmc_entropy_scores = False, trust_score = False)
 
 print("\n")
 print(thresholds)
 
+confidence_level = 20
+
+########################################################
+# Select only the first row (keeping it as a DataFrame)
+# first_row_df = scores_df.iloc[[0]]  # Use double brackets to maintain DataFrame structure
+# filtered_first_row = first_row_df[list(thresholds.keys())]
+# print(filtered_first_row)
+
+# Apply rejection function to first row only
+# rejected_first_sample = cs.weighted_rejection_by_confidence(confidence_level, filtered_first_row, thresholds, scores_constants.equal_weights, mode_debug= True)
+
+# print(rejected_first_sample)  #
+#######################################################
+
+
+# Apply rejection function to entire df
+rejected_df = cs.weighted_rejection_by_confidence(confidence_level, scores_df[:10], thresholds, scores_constants.equal_weights, mode_debug= False)
+print(rejected_df)
+
+
+# # Assuming scores_df and rejection_df are already defined
+# prediction_rejection_df = cs.create_prediction_rejection_df(scores_df[10:20], rejected_df, scores_constants.accuracy_rejection_columns_for_df)
+# print(prediction_rejection_df)
+#
+
+
+# Example usage:
+confidence_levels = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]  # List of confidence levels to test
+rejection_df = cs.run_rejection_for_multiple_confidences(confidence_levels, scores_df, thresholds, scores_constants.equal_weights, mode_debug=False)
+
+
+# Create the DataFrame
+result_df = cs.create_prediction_rejection_df(scores_df, rejection_df, scores_constants.accuracy_rejection_columns_for_df)
+
+accuracy_rejection_csv_path = "prediction_rejection_results.csv"
+# Save to CSV
+result_df.to_csv(accuracy_rejection_csv_path, index=False)  # index=False to exclude row indices
+
+
+df = cs.load_data(accuracy_rejection_csv_path)
+rejection_rates, accuracies = cs.compute_accuracy_vs_rejection(df)
+cs.plot_accuracy_vs_rejection(rejection_rates, accuracies)
