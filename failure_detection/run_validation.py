@@ -8,7 +8,7 @@ import torch
 from torch import Tensor
 
 from configs.load_model_and_config import (
-    get_config_data_model_for_eval_validation,
+    get_config_data_model_for_eval,
     get_failure_detection_filename,
 )
 
