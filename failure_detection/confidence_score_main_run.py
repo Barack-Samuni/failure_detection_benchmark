@@ -85,7 +85,7 @@ print(rejected_df)
 
 
 # Example usage:
-confidence_levels = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]  # List of confidence levels to test
+confidence_levels = list(range(0, 101, 10))  # List of confidence levels to test
 rejection_df = cs.run_rejection_for_multiple_confidences(confidence_levels, scores_df, thresholds, scores_constants.equal_weights, mode_debug=False)
 
 
@@ -93,10 +93,15 @@ rejection_df = cs.run_rejection_for_multiple_confidences(confidence_levels, scor
 result_df = cs.create_prediction_rejection_df(scores_df, rejection_df, scores_constants.accuracy_rejection_columns_for_df)
 
 accuracy_rejection_csv_path = "prediction_rejection_results.csv"
+
 # Save to CSV
-result_df.to_csv(accuracy_rejection_csv_path, index=False)  # index=False to exclude row indices
+# result_df.to_csv(accuracy_rejection_csv_path, index=False)  # index=False to exclude row indices
 
 
 df = cs.load_data(accuracy_rejection_csv_path)
 rejection_rates, accuracies = cs.compute_accuracy_vs_rejection(df)
 cs.plot_accuracy_vs_rejection(rejection_rates, accuracies)
+cs.plot_rejection_vs_confidence_level(rejection_rates, confidence_levels)
+
+print(rejection_rates)
+print(accuracies)

@@ -251,7 +251,7 @@ def compute_accuracy_vs_rejection(df):
         if len(accepted_targets) > 0:
             accuracy = (accepted_targets == accepted_predictions).mean()
         else:
-            accuracy = None  # Handle case where all samples are rejected
+            accuracy = None  # Set accuracy to 0 when all samples are rejected
 
         rejection_rate = mask.mean() * 100  # Convert to percentage
         rejection_rates.append(rejection_rate)
@@ -259,13 +259,51 @@ def compute_accuracy_vs_rejection(df):
 
     return rejection_rates, accuracies
 
+
 def plot_accuracy_vs_rejection(rejection_rates, accuracies):
     """Plots the accuracy vs. rejection rate."""
     plt.figure(figsize=(8, 5))
-    plt.plot(rejection_rates, accuracies, marker="o", linestyle="-", label="Accuracy vs. Rejection Rate")
+
+    # Filter out None values
+    valid_accuracies = [a for a in accuracies if a is not None]
+    valid_rejection_rates = [r for r, a in zip(rejection_rates, accuracies) if a is not None]  # Keep only valid pairs
+
+    if not valid_accuracies:  # Check if there's still valid data left
+        print("Error: No valid accuracy values to plot.")
+        return
+
+    plt.plot(valid_rejection_rates, valid_accuracies, marker="o", linestyle="-", label="Accuracy vs. Rejection Rate")
+
+    # plt.xlim(min(valid_rejection_rates), max(valid_rejection_rates))
+    # plt.ylim(min(valid_accuracies), max(valid_accuracies))
+
     plt.xlabel("Rejection Rate (%)")
     plt.ylabel("Model Accuracy")
     plt.title("Model Accuracy as a Function of Rejection Rate")
     plt.legend()
     plt.grid()
+
+    plt.show()
+
+
+def plot_rejection_vs_confidence_level(rejection_rates, confidence_levels):
+    """Plots the accuracy vs. rejection rate."""
+    plt.figure(figsize=(8, 5))
+
+    # Filter out None values
+
+    valid_rejection_rates = [r for r, a in zip(rejection_rates, confidence_levels) if a is not None]  # Keep only valid pairs
+
+
+    plt.plot(confidence_levels, valid_rejection_rates , marker="o", linestyle="-", label="Rejection Rate vs. Confidence Level ")
+
+    plt.xlim(min(valid_rejection_rates), max(valid_rejection_rates))
+    plt.ylim(min(confidence_levels), max(confidence_levels))
+
+    plt.xlabel("Confidence level")
+    plt.ylabel("Rejection Rate (%)")
+    plt.title("Rejection Rate as function of confidence level")
+    plt.legend()
+    plt.grid()
+
     plt.show()
