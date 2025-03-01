@@ -87,7 +87,9 @@ def calculate_confidence_score(dataframe, weights):
     weights = weights.set_index("Scoring_Method")
     weights["Scoring_Method"] = weights.index
     for _, row in output_df.iterrows():
-        confidence_score = row[weights["Scoring_Method"]].dot(weights["Weight"])
+        weights_with_threshold = pd.Series(np.where(row[weights["Scoring_Method"]] >= weights["Threshold"], weights["Weight"], 0),
+                                           index=weights["Scoring_Method"])
+        confidence_score = row[weights["Scoring_Method"]].dot(weights_with_threshold)
         confidence_scores = np.append(confidence_scores, confidence_score)
 
     # min-max normalization
