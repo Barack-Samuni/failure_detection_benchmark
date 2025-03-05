@@ -2,6 +2,8 @@
 import scores_constants
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+from pathlib import Path
 
 def calculate_true_predictions(target_labels, predictions_list):
     # Step 1: Convert TRUE/FALSE to 1/0 in predictions list
@@ -19,16 +21,43 @@ def calculate_true_predictions(target_labels, predictions_list):
     return correct_predictions, accuracy_percentage
 
 
-# normalize_scores_min_max is not relevant function because it might give undesired results for different training sessions
-# def normalize_scores_min_max(score_list):
-#     # Get the min and max of the list
-#     min_val = min(score_list)
-#     max_val = max(score_list)
-#
-#     # Apply min-max normalization to the list
-#     normalized_list = [(x - min_val) / (max_val - min_val) * 100 for x in score_list]
-#
-#     return normalized_list
+
+def calculate_accuracy_of_each_score(scores_df):
+    """
+    Function only for checking performance of each score
+    """
+    # Extracting columns into lists
+    # Target and prediction columns
+    # is_correct_list = scores_df['IsCorrect'].tolist()
+    target_labels = scores_df["Targets"].tolist()
+    baseline_predictions = scores_df["Predictions"].tolist()
+    mcmc_predictions = scores_df["mcmc_predictions"].tolist()
+    Laplace_predictions = scores_df["Laplace_predictions"].tolist()
+    SWAG_predictions = scores_df["SWAG_predictions"].tolist()
+
+    # Scores columns
+    baseline_list = scores_df['Baseline'].tolist()
+    doctor_alpha_list = scores_df['doctor_alpha'].tolist()
+    mcmc_soft_scores_list = scores_df['mcmc_soft_scores'].tolist()
+    # mcmc_entropy_scores_list = scores_df['mcmc_entropy_scores'].tolist()
+    laplace_score_list = scores_df['Laplace_score'].tolist()
+    # trustscore_list = scores_df['TrustScore'].tolist()
+    confidnet_scores_list = scores_df['ConfidNet_scores'].tolist()
+    swag_score_list = scores_df['SWAG_score'].tolist()
+
+    # Call the function for each list
+    # from the csv scores file, it looks like doctor alpha predictions accuracy is equal to the baseline
+    baseline_correct, baseline_accuracy = calculate_true_predictions(target_labels, baseline_predictions)
+    mcmc_correct, mcmc_accuracy = calculate_true_predictions(target_labels, mcmc_predictions)
+    Laplace_correct, Laplace_accuracy = calculate_true_predictions(target_labels, Laplace_predictions)
+    SWAG_correct, SWAG_accuracy = calculate_true_predictions(target_labels, SWAG_predictions)
+
+    # Print results
+    print(f"Baseline Correct Predictions: {baseline_correct} ({baseline_accuracy:.2f}%)")
+    print(f"MCMC Correct Predictions: {mcmc_correct} ({mcmc_accuracy:.2f}%)")
+    print(f"Laplace Correct Predictions: {Laplace_correct} ({Laplace_accuracy:.2f}%)")
+    print(f"SWAG Correct Predictions: {SWAG_correct} ({SWAG_accuracy:.2f}%)")
+    print("\n\n")
 
 
 """
@@ -50,7 +79,6 @@ def normalize_scores_absolute_range(method_name, score_list):
 
     return normalized_list
 
-import pandas as pd
 
 def normalize_scores_df(scores_df):
     """
@@ -251,7 +279,8 @@ def compute_accuracy_vs_rejection(df):
         if len(accepted_targets) > 0:
             accuracy = (accepted_targets == accepted_predictions).mean()
         else:
-            accuracy = None  # Set accuracy to 0 when all samples are rejected
+            accuracy = 0  # Set accuracy to 0 when all samples are rejected
+            #accuracy = None  # Creates a better looking graph but might be not good
 
         rejection_rate = mask.mean() * 100  # Convert to percentage
         rejection_rates.append(rejection_rate)
@@ -264,6 +293,8 @@ def plot_accuracy_vs_rejection(rejection_rates, accuracies):
     """Plots the accuracy vs. rejection rate."""
     plt.figure(figsize=(8, 5))
 
+    area_under_curve = calculate_accuracy_vs_rejection_auc(rejection_rates, accuracies)
+
     # Filter out None values
     valid_accuracies = [a for a in accuracies if a is not None]
     valid_rejection_rates = [r for r, a in zip(rejection_rates, accuracies) if a is not None]  # Keep only valid pairs
@@ -274,13 +305,15 @@ def plot_accuracy_vs_rejection(rejection_rates, accuracies):
 
     plt.plot(valid_rejection_rates, valid_accuracies, marker="o", linestyle="-", label="Accuracy vs. Rejection Rate")
 
-    # plt.xlim(min(valid_rejection_rates), max(valid_rejection_rates))
-    # plt.ylim(min(valid_accuracies), max(valid_accuracies))
-
     plt.xlabel("Rejection Rate (%)")
     plt.ylabel("Model Accuracy")
-    plt.title("Model Accuracy as a Function of Rejection Rate")
+    plt.title(f"Model Accuracy as a Function of Rejection Rate\nArea under curve: {round(area_under_curve, 1)} ")
     plt.legend()
+
+    # Set finer grid steps
+    plt.xticks(np.arange(0, 101, 5))  # X-axis: 10% steps
+    plt.yticks(np.arange(0, 1.05, 0.05))  # Y-axis: 0.1 steps in accuracy
+
     plt.grid()
 
     plt.show()
@@ -304,6 +337,38 @@ def plot_rejection_vs_confidence_level(rejection_rates, confidence_levels):
     plt.ylabel("Rejection Rate (%)")
     plt.title("Rejection Rate as function of confidence level")
     plt.legend()
+
+    # # Set finer grid steps
+    plt.xticks(np.arange(0, 101, 10))  # X-axis: 10% steps
+    plt.yticks(np.arange(0, 101, 10))  # Y-axis: 0.1 steps in accuracy
+
     plt.grid()
 
     plt.show()
+
+
+def calculate_accuracy_vs_rejection_auc(rejection_rates, accuracies):
+    # Ensure data is sorted in ascending order
+    sorted_indices = np.argsort(rejection_rates)  # Get sorting indices
+    rejection_rates = np.array(rejection_rates)[sorted_indices]  # Sort rejection rates
+    accuracies = np.array(accuracies)[sorted_indices]  # Sort accuracies accordingly
+
+    # Compute area under the curve using the trapezoidal rule
+    auc = np.trapz(accuracies, rejection_rates)
+    print(f"Area under the curve (AUC): {auc:.4f}")
+
+    return auc
+
+
+def load_best_thresholds(csv_path: str) -> dict:
+    """Load the best thresholds from a CSV file and return as a dictionary."""
+    csv_path = Path(csv_path)
+    if not csv_path.exists():
+        raise FileNotFoundError(f"File not found: {csv_path}")
+
+    df = pd.read_csv(csv_path)
+    if df.empty:
+        raise ValueError("The CSV file is empty.")
+
+    # Convert the first row to a dictionary
+    return df.iloc[0].to_dict()
