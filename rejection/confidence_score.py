@@ -64,14 +64,9 @@ def find_optimal_weights(dataframe, thresholds):
 
         weights = np.append(weights, rejection_of_incorrect_percentage)
 
-    max_weight = weights.max()
-    min_weight = weights.min()
-
-    # min - max normalization
-    if min_weight == max_weight:
-        weights = np.ones(len(weights)) # all weights will be 1
-    else:
-        weights = (weights - min_weight) / (max_weight - min_weight)
+    min_possible_weight = 0
+    max_possible_weight = 100
+    weights = (weights - min_possible_weight) / (max_possible_weight - min_possible_weight)
 
     optimal_weights["Weight"] = weights
 
@@ -93,16 +88,11 @@ def calculate_confidence_score(dataframe, weights):
         confidence_scores = np.append(confidence_scores, confidence_score)
 
     # min-max normalization
+    max_confidence_score = len(weights)                                                     # all weights are 1
+    min_confidence_score = 0                                                                # all scores rejected
     output_df["Confidence_score"] = confidence_scores
-    max_confidence_score = output_df["Confidence_score"].max()
-    min_confidence_score = output_df["Confidence_score"].min()
-
-    if min_confidence_score == max_confidence_score:
-        output_df["Confidence_score"] = np.ones(len(output_df["Confidence_score"])) * 100
-
-    else:
-        output_df["Confidence_score"] = ((output_df["Confidence_score"] - min_confidence_score) /
-                                         (max_confidence_score - min_confidence_score)) * 100
+    output_df["Confidence_score"] = ((output_df["Confidence_score"] - min_confidence_score) /
+                                     (max_confidence_score - min_confidence_score)) * 100
 
     return output_df
 

@@ -41,6 +41,10 @@ def find_thresholds(dataframe,visualize=True, separate_classes=False,confidnet=F
 
     if separate_classes:
         for row, method in enumerate(scoring_methods):
+            # doctor alpha and not already normalized
+            if method == "doctor_alpha" and dataframe["doctor_alpha"].min() >= -1 and dataframe["doctor_alpha"].max() <= 0:
+                dataframe['doctor_alpha'] = normalize_doctor_alpha(dataframe)
+
             for col, cls in enumerate(classes):
                 if visualize:
                     ax = axes[row, col]
@@ -124,6 +128,10 @@ def find_thresholds(dataframe,visualize=True, separate_classes=False,confidnet=F
                     ax.legend()
     else:
         for row, method in enumerate(scoring_methods):
+            # doctor alpha and not already normalized
+            if method == "doctor_alpha" and dataframe["doctor_alpha"].min() >= -(1 + 1e-6) and dataframe["doctor_alpha"].max() <= 0:
+                dataframe['doctor_alpha'] = normalize_doctor_alpha(dataframe)
+
             if visualize:
                 # Get the appropriate axis for this subplot
                 ax = axes[row]
@@ -198,3 +206,19 @@ def find_thresholds(dataframe,visualize=True, separate_classes=False,confidnet=F
         plt.show()
 
     return thresholds
+
+def normalize_doctor_alpha(dataframe):
+    """
+    Normalize doctor_alpha scores to [0, 1]
+    :param dataframe: pandas dataframe containing doctor_alpha scores
+    :return: numpy array of doctor_alpha scores normalized to [0, 1]
+    """
+    df_copy = dataframe.copy()
+    scores = df_copy['doctor_alpha'].to_numpy()
+    num_classes = len((df_copy['Targets'].unique()))
+    min_doctor_alpha = 1 - num_classes
+    max_doctor_alpha = 0
+    normalized_scores =  (scores - min_doctor_alpha) / (max_doctor_alpha - min_doctor_alpha)
+    return normalized_scores
+
+
