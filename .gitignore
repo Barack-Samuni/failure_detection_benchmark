@@ -118,6 +118,7 @@ MNIST/
 datasets/
 logs/
 outputs/
+outputs_train/
 
 
 cifar-10-batches-py/
