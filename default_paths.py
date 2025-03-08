@@ -8,4 +8,5 @@ DATA_DIR_DIABETIC_PROCESSED_IMAGES = DATA_DIR_DIABETIC / "preprocess_as_tensorfl
 
 
 DATA_MEDMNIST = Path(__file__).parent / "datasets"
-DATA_BUSI = Path(r"C:\Computer_Vision\Medical_Images_With_Rejection\OurSolution\failure_detection_benchmark\datasets\Dataset_BUSI\Dataset_BUSI_with_GT")
+# DATA_BUSI = Path(r"C:\Computer_Vision\Medical_Images_With_Rejection\OurSolution\failure_detection_benchmark\datasets\Dataset_BUSI\Dataset_BUSI_with_GT")
+DATA_BUSI = Path(r"C:\Users\97254\Desktop\niv\AFEKA\M.sc Machine learning\AI 2th year\Computer vision\failure_detection_benchmark-main\BUSI_DATASET_COPY\Dataset_BUSI_with_GT")
