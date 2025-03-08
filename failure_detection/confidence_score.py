@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import thresholding
+import seaborn as sns
 
 def calculate_true_predictions(target_labels, predictions_list):
     # Step 1: Convert TRUE/FALSE to 1/0 in predictions list
@@ -102,7 +103,7 @@ def normalize_scores_df(scores_df):
 
 
 
-def find_best_thresholds(train_root: str, val_root: str, output_csv: str = "best_thresholds.csv"):
+def find_best_thresholds(weights:dict, train_root: str, val_root: str, output_csv: str = "best_thresholds.csv"):
     """Finds the best threshold set by evaluating multiple training and validation datasets."""
     train_root = Path(train_root)
     val_root = Path(val_root)
@@ -145,7 +146,7 @@ def find_best_thresholds(train_root: str, val_root: str, output_csv: str = "best
         for val_file in validation_files:
             val_df = pd.read_csv(val_file)
             rejection_df = run_rejection_for_multiple_confidences(
-                confidence_levels, val_df, thresholds, scores_constants.equal_weights, mode_debug=False
+                confidence_levels, val_df, thresholds, weights, mode_debug=False
             )
             result_df = create_prediction_rejection_df(
                 val_df, rejection_df, scores_constants.accuracy_rejection_columns_for_df
@@ -162,6 +163,8 @@ def find_best_thresholds(train_root: str, val_root: str, output_csv: str = "best
     # Find the best threshold set (highest average AUC)
     best_index = auc_scores.index(max(auc_scores))
     best_thresholds = threshold_sets[best_index]
+    best_auc = auc_scores[best_index]  # Get corresponding AUC
+
 
     # Save the best thresholds to CSV
     output_path = Path(output_csv)
@@ -171,7 +174,7 @@ def find_best_thresholds(train_root: str, val_root: str, output_csv: str = "best
     print(f"Best thresholds saved to {output_path}\n")
     print(f"Best threshold set saved with AUC: {max(auc_scores)}")
 
-    return best_thresholds
+    return best_thresholds, best_auc
 
 
 
@@ -363,63 +366,6 @@ def compute_accuracy_vs_rejection(df):
     return rejection_rates, accuracies
 
 
-def plot_accuracy_vs_rejection(rejection_rates, accuracies):
-    """Plots the accuracy vs. rejection rate."""
-    plt.figure(figsize=(8, 5))
-
-    area_under_curve = calculate_accuracy_vs_rejection_auc(rejection_rates, accuracies)
-
-    # Filter out None values
-    valid_accuracies = [a for a in accuracies if a is not None]
-    valid_rejection_rates = [r for r, a in zip(rejection_rates, accuracies) if a is not None]  # Keep only valid pairs
-
-    if not valid_accuracies:  # Check if there's still valid data left
-        print("Error: No valid accuracy values to plot.")
-        return
-
-    plt.plot(valid_rejection_rates, valid_accuracies, marker="o", linestyle="-", label="Accuracy vs. Rejection Rate")
-
-    plt.xlabel("Rejection Rate (%)")
-    plt.ylabel("Model Accuracy")
-    plt.title(f"Model Accuracy as a Function of Rejection Rate\nArea under curve: {round(area_under_curve, 1)} ")
-    plt.legend()
-
-    # Set finer grid steps
-    plt.xticks(np.arange(0, 101, 5))  # X-axis: 10% steps
-    plt.yticks(np.arange(0, 1.05, 0.05))  # Y-axis: 0.1 steps in accuracy
-
-    plt.grid()
-
-    plt.show()
-
-
-def plot_rejection_vs_confidence_level(rejection_rates, confidence_levels):
-    """Plots the accuracy vs. rejection rate."""
-    plt.figure(figsize=(8, 5))
-
-    # Filter out None values
-
-    valid_rejection_rates = [r for r, a in zip(rejection_rates, confidence_levels) if a is not None]  # Keep only valid pairs
-
-
-    plt.plot(confidence_levels, valid_rejection_rates , marker="o", linestyle="-", label="Rejection Rate vs. Confidence Level ")
-
-    plt.xlim(min(valid_rejection_rates), max(valid_rejection_rates))
-    plt.ylim(min(confidence_levels), max(confidence_levels))
-
-    plt.xlabel("Confidence level")
-    plt.ylabel("Rejection Rate (%)")
-    plt.title("Rejection Rate as function of confidence level")
-    plt.legend()
-
-    # # Set finer grid steps
-    plt.xticks(np.arange(0, 101, 10))  # X-axis: 10% steps
-    plt.yticks(np.arange(0, 101, 10))  # Y-axis: 0.1 steps in accuracy
-
-    plt.grid()
-
-    plt.show()
-
 
 def calculate_accuracy_vs_rejection_auc(rejection_rates, accuracies):
     # Ensure data is sorted in ascending order
@@ -446,3 +392,5 @@ def load_best_thresholds(csv_path: str) -> dict:
 
     # Convert the first row to a dictionary
     return df.iloc[0].to_dict()
+
+
