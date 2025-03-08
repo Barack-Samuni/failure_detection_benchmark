@@ -2,7 +2,7 @@ import numpy as np
 from IPython.display import display, Markdown
 
 from rejection.rejection import reject, rejection_confusion_matrix
-from rejection.thresholding import find_thresholds
+from rejection.thresholding import find_thresholds,normalize_doctor_alpha
 import pandas as pd
 from rejection.confidence_score import find_optimal_weights, calculate_confidence_score
 from pathlib import Path
@@ -57,6 +57,7 @@ def get_parameters_and_validate(train_seeds: np.ndarray, validation_seeds: np.nd
             validation_scores_df = pd.read_csv(Path(f"{root_dir}/outputs/RSNAPneumonia/resnet50"
                                                     f"/dropout_all_layers_autolr_paper/seed_{validation_seed}"
                                                     f"/failure_detection/scores_df.csv"))
+            validation_scores_df['doctor_alpha'] = normalize_doctor_alpha(validation_scores_df)
 
             # -----------------Calculate confidence score---------------------------
             display(Markdown("##### **Calculate confidence score**\n***"))
