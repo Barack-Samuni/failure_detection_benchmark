@@ -30,10 +30,7 @@ def reject(dataframe,confidence_level: Union[float , ndarray] = 0.0, visualize: 
 
         elif confidence == 100:     # accept everything
             rejection = 0
-            correct_condition = ((((dataframe["IsCorrect"] == True) |
-                                 (dataframe["SWAG_predictions"] == dataframe["SWAG_targets"])) |
-                                 (dataframe["Laplace_predictions"] == dataframe["Laplace_targets"])) |
-                                 (dataframe["mcmc_predictions"] == dataframe["Targets"]))
+            correct_condition = (dataframe["IsCorrect"] == True)
 
             correct_samples = dataframe[correct_condition]
             acc = (correct_samples.shape[0] / dataframe.shape[0]) * 100
@@ -43,10 +40,7 @@ def reject(dataframe,confidence_level: Union[float , ndarray] = 0.0, visualize: 
             rejected_samples = dataframe[dataframe["Confidence_score"] < rejection_threshold]
             rejection = (rejected_samples.shape[0] / dataframe.shape[0]) * 100
             non_rejected_samples = dataframe[dataframe["Confidence_score"] >= rejection_threshold]
-            correct_condition = ((((non_rejected_samples["IsCorrect"] == True) |
-                                 (non_rejected_samples["SWAG_predictions"] == non_rejected_samples["SWAG_targets"])) |
-                                 (non_rejected_samples["Laplace_predictions"] == non_rejected_samples["Laplace_targets"])) |
-                                 (non_rejected_samples["mcmc_predictions"] == non_rejected_samples["Targets"]))
+            correct_condition = (non_rejected_samples["IsCorrect"] == True)
 
             correct_samples = non_rejected_samples[correct_condition]
             if non_rejected_samples.shape[0] == 0:      # rejected everything
@@ -107,19 +101,19 @@ def rejection_confusion_matrix(dataframe: DataFrame, confidence_level: float) ->
     rejection_threshold = 100 - confidence_level
     dataframe["Rejected"] = np.where(dataframe["Confidence_score"] < rejection_threshold, "Rejected", "Not Rejected")
 
-    correct_condition = ((((dataframe["IsCorrect"] == True) |
-                           (dataframe["SWAG_predictions"] == dataframe["SWAG_targets"])) |
-                          (dataframe["Laplace_predictions"] == dataframe["Laplace_targets"])) |
-                         (dataframe["mcmc_predictions"] == dataframe["Targets"]))
+    correct_condition = (dataframe["IsCorrect"] == True)
+
 
     rejected_condition = dataframe["Rejected"] == "Rejected"
-    dataframe["Right_Decision"] = np.where((correct_condition ^ rejected_condition), "Right_Decision", "Wrong_Decision")
-    cm = confusion_matrix(dataframe["Rejected"].map({"Rejected": True, "Not Rejected": False}),
-                          dataframe["Right_Decision"].map({"Right_Decision": True, "Wrong_Decision": False}))
+    dataframe["Correct_Prediction"] = np.where(correct_condition, "Correct_Prediction", "Wrong_Prediction")
+    cm = confusion_matrix(dataframe["Rejected"].map({"Rejected": False, "Not Rejected": True}),
+                          dataframe["Correct_Prediction"].map({"Correct_Prediction": False, "Wrong_Prediction": True}))
     cm = (cm / cm.sum()) * 100
-    sns.heatmap(cm, annot=True, fmt=".2f", cmap="inferno", cbar=True, annot_kws={"size": 10},
-                yticklabels=["Not Rejected", "Rejected"], xticklabels=["Wrong Decision", "Right Decision"])
-    plt.title(f"Rejected Non-Rejected VS. Right and Wrong Decision, Confidence Level = {confidence_level}%")
+    sns.heatmap(cm.T, annot=True, fmt=".2f", cmap="inferno", cbar=True, annot_kws={"size": 10},
+                xticklabels=["Rejected", "Not Rejected"], yticklabels=["Correct Prediction", "Wrong Prediction"])
+    plt.title(f"Rejected Non-Rejected VS. Right and Wrong Prediction, Confidence Level = {confidence_level}%")
+    plt.ylabel("Prediction Correctness")
+    plt.xlabel("Rejection Decision")
     plt.show()
 
 
